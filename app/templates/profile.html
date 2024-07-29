@@ -1,12 +1,22 @@
 {% extends 'base.html' %}
 
-{% block title %}Профиль{% endblock %}
-
 {% block content %}
-    <h2>Ваш профиль</h2>
-    <ul>
-        <li>Имя пользователя: {{ current_user.username }}</li>
-        <li>Электронная почта: {{ current_user.email }}</li>
-    </ul>
-    <a href="{{ url_for('routes.edit_profile') }}" class="btn btn-primary">Редактировать профиль</a>
+<h2>Профиль пользователя</h2>
+<form method="POST" action="{{ url_for('routes.edit_profile') }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        <label for="username">Имя пользователя</label>
+        {{ form.username(class="form-control", id="username") }}
+    </div>
+    <div class="form-group">
+        <label for="email">Электронная почта</label>
+        {{ form.email(class="form-control", id="email") }}
+    </div>
+    <div class="form-group">
+        <label for="password">Пароль</label>
+        {{ form.password(class="form-control", id="password") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Обновить профиль</button>
+</form>
+<a href="{{ url_for('routes.logout') }}" class="btn btn-secondary">Выйти</a>
 {% endblock %}

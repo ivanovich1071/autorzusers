@@ -53,8 +53,9 @@ def profile():
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.email = form.email.data
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        current_user.password = hashed_password
+        if form.password.data:
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            current_user.password = hashed_password
         db.session.commit()
         flash('Ваш профиль был обновлен!', 'success')
         return redirect(url_for('routes.profile'))
@@ -62,4 +63,30 @@ def profile():
         form.username.data = current_user.username
         form.email.data = current_user.email
     return render_template('profile.html', title='Профиль', form=form)
+
+@routes.route("/edit_profile", methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = UpdateProfileForm()
+    if form.validate_on_submit():
+        print("Форма валидна, данные обновляются...")  # Отладочное сообщение
+        current_user.username = form.username.data
+        current_user.email = form.email.data
+        if form.password.data:
+            hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+            current_user.password = hashed_password
+        try:
+            db.session.commit()
+            flash('Ваш профиль был обновлен!', 'success')
+            print("Профиль обновлен успешно!")  # Отладочное сообщение
+        except Exception as e:
+            db.session.rollback()
+            flash('Произошла ошибка при обновлении профиля.', 'danger')
+            print(f"Ошибка при обновлении профиля: {str(e)}")  # Отладочное сообщение
+        return redirect(url_for('routes.profile'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+        print("Загрузка профиля пользователя...")  # Отладочное сообщение
+    return render_template('edit_profile.html', title='Редактировать Профиль', form=form)
 

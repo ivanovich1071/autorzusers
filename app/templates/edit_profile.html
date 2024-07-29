@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block content %}
+<h2>Редактировать Профиль</h2>
+<form method="POST" action="{{ url_for('routes.edit_profile') }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        <label for="username">Имя пользователя</label>
+        {{ form.username(class="form-control", id="username") }}
+    </div>
+    <div class="form-group">
+        <label for="email">Электронная почта</label>
+        {{ form.email(class="form-control", id="email") }}
+    </div>
+    <div class="form-group">
+        <label for="password">Пароль</label>
+        {{ form.password(class="form-control", id="password") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Обновить</button>
+</form>
+<a href="{{ url_for('routes.profile') }}" class="btn btn-secondary">Назад</a>
+{% endblock %}
