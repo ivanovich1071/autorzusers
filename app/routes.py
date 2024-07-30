@@ -1,3 +1,4 @@
+
 from flask import render_template, url_for, flash, redirect, request, Blueprint
 from flask_login import login_user, current_user, logout_user, login_required
 from app import db, bcrypt
@@ -36,7 +37,8 @@ def login():
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=True)
             flash('Вы успешно вошли в систему.', 'success')
-            return redirect(url_for('routes.home'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('routes.home'))
         else:
             flash('Вход не удался. Пожалуйста, проверьте почту и пароль.', 'danger')
     return render_template('login.html', title='Вход', form=form)
@@ -51,14 +53,21 @@ def logout():
 def profile():
     form = UpdateProfileForm()
     if form.validate_on_submit():
-        current_user.username = form.username.data
-        current_user.email = form.email.data
+        if form.username.data != current_user.username:
+            current_user.username = form.username.data
+        if form.email.data != current_user.email:
+            current_user.email = form.email.data
         if form.password.data:
             hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
             current_user.password = hashed_password
-        db.session.commit()
-        flash('Ваш профиль был обновлен!', 'success')
-        return redirect(url_for('routes.profile'))
+        try:
+            db.session.commit()
+            flash('Ваш профиль был обновлен!', 'success')
+            return redirect(url_for('routes.profile'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Произошла ошибка при обновлении профиля.', 'danger')
+            print(f"Ошибка при обновлении профиля: {str(e)}")
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
@@ -69,24 +78,22 @@ def profile():
 def edit_profile():
     form = UpdateProfileForm()
     if form.validate_on_submit():
-        print("Форма валидна, данные обновляются...")  # Отладочное сообщение
-        current_user.username = form.username.data
-        current_user.email = form.email.data
+        if form.username.data != current_user.username:
+            current_user.username = form.username.data
+        if form.email.data != current_user.email:
+            current_user.email = form.email.data
         if form.password.data:
             hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
             current_user.password = hashed_password
         try:
             db.session.commit()
             flash('Ваш профиль был обновлен!', 'success')
-            print("Профиль обновлен успешно!")  # Отладочное сообщение
+            return redirect(url_for('routes.profile'))
         except Exception as e:
             db.session.rollback()
             flash('Произошла ошибка при обновлении профиля.', 'danger')
-            print(f"Ошибка при обновлении профиля: {str(e)}")  # Отладочное сообщение
-        return redirect(url_for('routes.profile'))
+            print(f"Ошибка при обновлении профиля: {str(e)}")
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
-        print("Загрузка профиля пользователя...")  # Отладочное сообщение
     return render_template('edit_profile.html', title='Редактировать Профиль', form=form)
-
